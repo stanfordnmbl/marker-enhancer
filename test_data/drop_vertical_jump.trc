@@ -1,4 +1,4 @@
-PathFileType  4	(X/Y/Z) C:/MyDriveSym/Projects/mobilecap/Data\Session20210813_0001\MarkerData\mmpose_0.8\2-cameras\PreAugmentation
+PathFileType  4	(X/Y/Z) C:/MyDriveSym/Projects/mobilecap/Data\Session20210813_0001\MarkerData\mmpose_0.8\2-cameras\PreAugmentation_updated_benchmark_reprojection
 DataRate	CameraRate	NumFrames	NumMarkers	Units	OrigDataRate	OrigDataStartFrame	OrigNumFrames
 60.0	60.0	301	20	m	60.0	1	301
 Frame#	Time	Neck			RShoulder			RElbow			RWrist			LShoulder			LElbow			LWrist			midHip			RHip			RKnee			RAnkle			LHip			LKnee			LAnkle			LBigToe			LSmallToe			LHeel			RBigToe			RSmallToe			RHeel			
