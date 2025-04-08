@@ -11,7 +11,7 @@ from utilities import getMarkersPoseDetector_lowerExtremity, getMarkersAugmenter
 from utilities import getMarkersPoseDetector_upperExtremity, getMarkersAugmenter_upperExtremity
 
 # %% User settings.
-enhancer_type = 'linear' # Options are 'lstm' or 'linear'.
+enhancer_type = 'linear' # Options are 'lstm', 'linear', or 'transformer'.
 # Set to True if you want to test the reference model. If set to False, then
 # specify the case you want to test in the variable 'case'.
 test_reference_model = True
@@ -67,36 +67,26 @@ for model_type in ['body', 'arm']:
     feature_markers_raw = [x.split('_')[0] for x in feature_markers]
 
     # Prepare inputs.
-    # Step 1: import .trc file with OpenPose marker trajectories.
+    # Import .trc file with OpenPose marker trajectories.
     trc_data = TRC2numpy(path_trc_file, feature_markers_raw)
     trc_data_time = trc_data[:,0]
     trc_data_data = trc_data[:,1:]
 
-    # Step 2: Normalize with reference marker position.
+    # Normalize with reference marker position.
     norm_trc_data_data = np.zeros((trc_data_data.shape[0],trc_data_data.shape[1]))
     for i in range(0,trc_data_data.shape[1],3):
         norm_trc_data_data[:,i:i+3] = trc_data_data[:,i:i+3] - reference_marker_data
         
-    # Step 3: Normalize with subject's height.
+    # Normalize with subject's height.
     norm2_trc_data_data = copy.deepcopy(norm_trc_data_data)
     norm2_trc_data_data = norm2_trc_data_data / subject_height
 
-    # Step 4: Add remaining features.
+    # Add remaining features.
     inputs = copy.deepcopy(norm2_trc_data_data)
     inputs = np.concatenate((inputs, subject_height*np.ones((inputs.shape[0],1))), axis=1)
     inputs = np.concatenate((inputs, subject_weight*np.ones((inputs.shape[0],1))), axis=1)
-    
-    # Predict outputs.
-    # Step 1: Import trained model and weights.
-    json_file = open(os.path.join(path_models, 'model.json'), 'r')
-    pretrainedModel_json = json_file.read()
-    json_file.close()
-    model = tf.keras.models.model_from_json(pretrainedModel_json)  
 
-    # Step 2: Load weights into new model.
-    model.load_weights(os.path.join(path_models, path_models, 'weights.h5'))
-
-    # Step 3: Process data.
+    # Mean and std normalization.
     mean_subtraction = settings['mean_subtraction'] 
     std_normalization = settings['std_normalization'] 
     if mean_subtraction:
@@ -107,20 +97,31 @@ for model_type in ['body', 'arm']:
         inputs /= trainFeatures_std
     if enhancer_type == 'lstm':
         inputs = np.reshape(inputs, (1, inputs.shape[0], inputs.shape[1]))
-    outputs = model.predict(inputs, verbose=0)
+    
+    # Import model, load weights, run inference.
+    if enhancer_type == 'lstm' or enhancer_type == 'linear':
+        json_file = open(os.path.join(path_models, 'model.json'), 'r')
+        pretrainedModel_json = json_file.read()
+        json_file.close()
+        model = tf.keras.models.model_from_json(pretrainedModel_json)
+        model.load_weights(os.path.join(path_models, 'weights.h5'))
+        outputs = model.predict(inputs, verbose=0)
+    elif enhancer_type == 'transformer':
+        augmenter_instance_reloaded = tf.saved_model.load(path_models)
+        outputs_temp = augmenter_instance_reloaded(inputs)
+        outputs = outputs_temp.numpy()
     if enhancer_type == 'lstm':
         outputs = np.reshape(outputs, (outputs.shape[1], outputs.shape[2]))
 
-    # Post-process outputs.
-    # Step 1: Un-normalize with subject's height.
+    # Un-normalize with subject's height.
     unnorm_outputs = outputs * subject_height
 
-    # Step 2: Un-normalize with reference marker position.
+    # Un-normalize with reference marker position.
     unnorm2_outputs = np.zeros((unnorm_outputs.shape[0],unnorm_outputs.shape[1]))
     for i in range(0,unnorm_outputs.shape[1],3):
         unnorm2_outputs[:,i:i+3] = unnorm_outputs[:,i:i+3] + reference_marker_data
         
-    # %% Add enhanced markers to marker file.
+    # Add enhanced markers to marker file.
     for c, marker in enumerate(response_markers):
         x = unnorm2_outputs[:,c*3]
         y = unnorm2_outputs[:,c*3+1]
