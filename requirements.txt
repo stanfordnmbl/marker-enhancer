@@ -1,0 +1,6 @@
+numpy
+tensorflow[and-cuda]
+matplotlib
+scipy
+pandas
+h5py
