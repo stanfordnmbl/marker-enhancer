@@ -75,7 +75,7 @@ def get_settings_lstm(a):
 def get_settings_transformer(a):
           
   settings = {
-      "lower_extremity": {
+      "body_reference": {
           "augmenter_type": "lowerExtremity",
           "poseDetector": "openpose",
           "idxDatasets": [idx for idx in range(0,29) if not idx in [3,4,6,12]],
@@ -119,7 +119,7 @@ def get_settings_transformer(a):
                             "LCalc_augmenter": 2}
       },
 
-      "upper_extremity": {
+      "arm_reference": {
           "augmenter_type": "upperExtremity",
           "poseDetector": "openpose",
           "idxDatasets": [idx for idx in range(0,29) if not idx in [3,4,6,12]],
