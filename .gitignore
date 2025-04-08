@@ -6,3 +6,6 @@ __pycache__/
 # Data
 Data/*
 !Data/subjectSplit_curated.npy
+
+test_data/*
+!test_data/drop_vertical_jump.trc

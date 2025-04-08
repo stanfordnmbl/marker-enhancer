@@ -2,13 +2,11 @@
 def get_settings_lstm(a):
 
   settings = {
-      "lower_extremity": {
+      "body_reference": {
           "augmenter_type": "lowerExtremity",
           "poseDetector": "openpose",
-          # "idxDatasets": [idx for idx in range(0,29) if not idx in [3,4,6,12]],
-          "idxDatasets": [0],
-          # "scaleFactors": [0.9, 0.95, 1., 1.05, 1.1],
-          "scaleFactors": [1],
+          "idxDatasets": [idx for idx in range(0,29) if not idx in [3,4,6,12]],
+          "scaleFactors": [0.9, 0.95, 1., 1.05, 1.1],
           "nScaleFactors": -1,
           "different_data_val_loss": True,
           "learning_r": 0.0000551656748852718,
@@ -37,49 +35,12 @@ def get_settings_lstm(a):
                             "LToe_augmenter": 2,
                             "L5meta_augmenter": 2,
                             "LCalc_augmenter": 2},
+          "partial_selection": {"activity":["treadmillwalking", "cycling", "karate"], 
+                                "factor":[2, 3, 2],
+                                "excluded": [2]}
         },
-
-      # "lower_extremity": {
-      #     "augmenter_type": "lowerExtremity",
-      #     "poseDetector": "openpose",
-      #     # "idxDatasets": [idx for idx in range(0,29) if not idx in [3,4,6,12]],
-      #     "idxDatasets": [0],
-      #     # "scaleFactors": [0.9, 0.95, 1., 1.05, 1.1],
-      #     "scaleFactors": [1],
-      #     "nScaleFactors": -1,
-      #     "different_data_val_loss": True,
-      #     "learning_r": 0.0000551656748852718,
-      #     "nHUnits": 128,
-      #     "nHLayers": 3,
-      #     "nEpochs": 30,
-      #     "batchSize": 64,
-      #     "mean_subtraction": True,
-      #     "std_normalization": True,
-      #     "noise_magnitude": 0.018,
-      #     "noise_type": "per_timestep",
-      #     "withRotation": True,
-      #     "nRotations": 8,
-      #     "rotation_type": "mixedCircleSphereRotation",
-      #     "mixedCircleSphereRotations" : {"nCircleRotations": 6, "nSphereRotations": 2},
-      #     "bidirectional": False,
-      #     "num_frames": 60,
-      #     "sampling_frequencies": {"Dataset": [2], "fs": [100]},
-      #     "h5": True,
-      #     "sherlock": False,
-      #     "loss_f": "weighted_l2_loss",
-      #     "curated_datasets": True,
-      #     "marker_weights": {"RToe_augmenter": 2,
-      #                       "R5meta_augmenter": 2,
-      #                       "RCalc_augmenter": 2,
-      #                       "LToe_augmenter": 2,
-      #                       "L5meta_augmenter": 2,
-      #                       "LCalc_augmenter": 2},
-      #     "partial_selection": {"activity":["treadmillwalking", "cycling", "karate"], 
-      #                           "factor":[2, 3, 2],
-      #                           "excluded": [2]}
-      #   },
         
-      "upper_extremity": {
+      "arm_reference": {
           "augmenter_type": "upperExtremity",
           "poseDetector": "openpose",
           "idxDatasets": [idx for idx in range(0,29) if not idx in [3,4,6,12]],
