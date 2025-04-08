@@ -5,7 +5,7 @@ import dataman
 import copy
 import tensorflow as tf
 
-from settings import get_settings_lstm, get_settings_linear
+from settings import get_settings_lstm, get_settings_linear, get_settings_transformer
 from utilities import TRC2numpy
 from utilities import getMarkersPoseDetector_lowerExtremity, getMarkersAugmenter_lowerExtremity
 from utilities import getMarkersPoseDetector_upperExtremity, getMarkersAugmenter_upperExtremity
@@ -56,6 +56,8 @@ for model_type in ['body', 'arm']:
         settings = get_settings_lstm(case)
     elif enhancer_type == 'linear':
         settings = get_settings_linear(case)
+    elif enhancer_type == 'transformer':
+        settings = get_settings_transformer(case)
     augmenter_type = settings['augmenter_type']
     pose_detector = settings['poseDetector']
     if augmenter_type == 'lowerExtremity':    
