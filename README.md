@@ -9,29 +9,35 @@ The marker enhancer model predicts the 3D position of 43 anatomical markers (col
 
 The marker enhancer is deployed as part of [OpenCap](https://www.opencap.ai/) ([source code](https://github.com/stanfordnmbl/opencap-core); [paper](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1011462)), a markerless motion capture system to measure human movement from smartphone videos.
 
-The code is organized into different sections for data preparation, training, and testing of the models.
-
 ### Install requirements
 
 1. Create environment: `conda create -n marker-enhancer python=3.11`
 2. Activate environment: `conda activate marker-enhancer`
 3. Install [TensorFlow with GPU support](https://www.tensorflow.org/install/pip).
-3. Install other packages: `python -m pip install -r requirements.txt`
-
-### Data
+    - For training/testing the Transformer model, you might need to use Ubuntu (at the time of doing this study, the required TensorFlow version was not supported on Windows)
+4. Install other packages: `python -m pip install -r requirements.txt`
 
 ### Reference models
-1. LSTM: 
-2. Transformer: 
-3. Linear: 
+The paper compares three model architectures: LSTM, Transformer, and Linear.
+The 3 resulting trained models are available in the `reference_models` folder.
+The LSTM and Transformer performed best (more details in the paper). The LSTM
+model is the default model used in OpenCap ([v0.3](https://github.com/stanfordnmbl/opencap-core/tree/main/MarkerAugmenter/LSTM))
+
+### Data
+We will make the public data available as soon as possible.
+In the meantime, here is an [example dataset](https://drive.google.com/drive/folders/1ZpExo7fpdyX6qKjGvO40d8hJdm8906ij?usp=sharing) (corresponding to `Dataset0`).
+Download it and set it under the `Data/training_data_curated_60_openpose` folder. You should have the following structure:
+- `Data/training_data_curated_60_openpose/infoData.npy`
+- `Data/training_data_curated_60_openpose/time_sequences.h5`
 
 ### Training
-1. LSTM: `train_lstm.py`
+The code we provide is for training the LSTM/Linear and Transformer models. 
+1. LSTM or linear: `train_lstm_linear.py`
 2. Transformer: `train_transformer.py`
 
 ### Testing
-1. LSTM: `test_lstm.py`
-2. Transformer: `test_transformer.py`
+You can test the reference and trained models using the provided test script: `train_trained_models.py`
+Follow the instructions at the top to test the reference models or your own trained models.
 
 ### Citation
 If you use this code in your research, please cite our paper:
