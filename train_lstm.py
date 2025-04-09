@@ -10,17 +10,18 @@ import h5py
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
-from settings import get_settings_lstm
+from settings import get_settings_lstm, get_settings_linear
 from models import get_lstm_model, get_linear_regression_model
-from data_generator import lstmDataGenerator
+from data_generator import dataGenerator
 from datasets import getInfodataset
 from utilities import getPartition, get_partition_name, get_mean_name
-from utilities import rotateArray, rotateArraySphere4, get_idx_in_all_features, get_idx_in_all_features_oldData, get_reference_marker_value
+from utilities import rotateArray, rotateArraySphere4, get_idx_in_all_features, get_reference_marker_value
 from utilities import subtract_reference_marker_value, normalize_height
 from utilities import get_circle_rotation, get_noise, get_height, getInfoDataName, getResampleName
 
 # %% User inputs.
 # Select case you want to train, see mySettings for case-specific settings.
+model_type = 'linear' # Options are 'lstm' or 'linear'.
 cases = ["body_example", "arm_example"]
 docker = False
 
@@ -34,8 +35,10 @@ for case in cases:
     # %% Load settings.
 
     print("Training case: {}".format(case))
-
-    settings = get_settings_lstm(case)
+    if model_type == 'lstm':
+        settings = get_settings_lstm(case)
+    elif model_type == 'linear':
+        settings = get_settings_linear(case)
     augmenter_type = settings["augmenter_type"]
     poseDetector = settings["poseDetector"]
     idxDatasets = settings["idxDatasets"]
@@ -134,10 +137,6 @@ for case in cases:
     if 'marker_weights' in settings:
         marker_weights = settings["marker_weights"]
 
-    model_type = 'LSTM'
-    if 'model_type' in settings:
-        model_type = settings["model_type"]
-
     sensitivity_model = ''
     if 'sensitivity_model' in settings:
         sensitivity_model = settings["sensitivity_model"]
@@ -223,7 +222,7 @@ for case in cases:
     else:
         pathMain = os.getcwd()
 
-    pathTrainedModels = os.path.join(pathMain, 'trained_models', 'lstm', case)
+    pathTrainedModels = os.path.join(pathMain, 'trained_models', model_type, case)
     os.makedirs(pathTrainedModels, exist_ok=True)
         
     # %% Settings.
@@ -506,33 +505,26 @@ for case in cases:
                             allow_pickle=True).item()
                         c_features_all = c_sequence["features"]                        
                     # Process features.
-                    if old_data:
-                        # With the old data, the features are already processed
-                        # (i.e. normalized by subject height and expressed with respect to reference marker).
-                        idx_in_all_features = get_idx_in_all_features_oldData(
-                            nDim=nDim, featureHeight=featureHeight, featureWeight=featureWeight)[0]
-                        c_features = c_features_all[:,idx_in_all_features]
-                    else:
-                        # Does the current dataset have arms?
-                        idx_in_mapping_arms = np.where(
-                            np.array(mapping['datasets_arms_idx']) == idxDataset)[0][0]
-                        withArms = mapping['datasets_arms_bool'][idx_in_mapping_arms]                        
-                        # 1) Extract indices features.    
-                        idx_in_all_features = get_idx_in_all_features(
-                            augmenter_type, poseDetector, c_features_all.shape[1], nDim=nDim, 
-                            withArms=withArms, featureHeight=featureHeight, featureWeight=featureWeight)[0]
-                        c_features = c_features_all[:,idx_in_all_features]
-                        # 2) Express with respect to reference marker.                   
-                        ref_marker_value = get_reference_marker_value(
-                            c_features_all, reference_marker, poseDetector, nDim=nDim, withArms=withArms)                 
-                        c_features_wrt_ref = subtract_reference_marker_value(
-                            c_features, len(feature_markers), ref_marker_value, 
-                            featureHeight=featureHeight, featureWeight=featureWeight)
-                        # 3) Normalize by subject height.
-                        height = get_height(c_features_all)
-                        c_features = normalize_height(
-                            c_features_wrt_ref, height, len(feature_markers), nDim=nDim, 
-                            featureHeight=featureHeight, featureWeight=featureWeight)
+                    # Does the current dataset have arms?
+                    idx_in_mapping_arms = np.where(
+                        np.array(mapping['datasets_arms_idx']) == idxDataset)[0][0]
+                    withArms = mapping['datasets_arms_bool'][idx_in_mapping_arms]                        
+                    # 1) Extract indices features.    
+                    idx_in_all_features = get_idx_in_all_features(
+                        augmenter_type, poseDetector, c_features_all.shape[1], nDim=nDim, 
+                        withArms=withArms, featureHeight=featureHeight, featureWeight=featureWeight)[0]
+                    c_features = c_features_all[:,idx_in_all_features]
+                    # 2) Express with respect to reference marker.                   
+                    ref_marker_value = get_reference_marker_value(
+                        c_features_all, reference_marker, poseDetector, nDim=nDim, withArms=withArms)                 
+                    c_features_wrt_ref = subtract_reference_marker_value(
+                        c_features, len(feature_markers), ref_marker_value, 
+                        featureHeight=featureHeight, featureWeight=featureWeight)
+                    # 3) Normalize by subject height.
+                    height = get_height(c_features_all)
+                    c_features = normalize_height(
+                        c_features_wrt_ref, height, len(feature_markers), nDim=nDim, 
+                        featureHeight=featureHeight, featureWeight=featureWeight)
                     if not c_features.shape[0] == num_frames:
                         raise ValueError("Dimension features is wrong")
                     # Apply rotations.
@@ -638,20 +630,19 @@ for case in cases:
         params_val_loss['withRotation'] = withRotation_val_loss
         params_val_loss['mixedCircleSphereRotations'] = mixedCircleSphereRotations_val_loss
 
-    if model_type == 'LSTM' or model_type == 'linear_regression':          
-        train_generator = lstmDataGenerator(partition['train'], pathData_all, **params)
-        if different_data_val_loss:
-            val_generator = lstmDataGenerator(partition_val_loss['val'], pathData_all, **params_val_loss)
-        else:            
-            val_generator = lstmDataGenerator(partition['val'], pathData_all, **params)      
+    train_generator = dataGenerator(partition['train'], pathData_all, **params)
+    if different_data_val_loss:
+        val_generator = dataGenerator(partition_val_loss['val'], pathData_all, **params_val_loss)
+    else:            
+        val_generator = dataGenerator(partition['val'], pathData_all, **params)      
 
     # %% Initialize model.
-    if model_type == 'LSTM':  
+    if model_type == 'lstm':  
         model = get_lstm_model(input_dim=nFeature_markers+nAddFeatures, output_dim=nResponse_markers,
                                 nHiddenLayers=nHLayers, nHUnits=nHUnits, learning_r=learning_r, loss_f=loss_f,
                                 bidirectional=bidirectional,
                                 dropout=dropout, recurrent_dropout=recurrent_dropout, weights=weights_loss)
-    elif model_type == 'linear_regression':
+    elif model_type == 'linear':
         model = get_linear_regression_model(input_dim=nFeature_markers+nAddFeatures, output_dim=nResponse_markers,
                                             learning_r=learning_r, loss_f=loss_f, weights=weights_loss)
     # Calculate total number of parameters
@@ -694,7 +685,7 @@ for case in cases:
             X_val = np.concatenate(X_val)
             y_val = np.concatenate(y_val)
 
-            if model_type == 'linear_regression':
+            if model_type == 'linear':
                 X_val = X_val.reshape(-1, nFeature_markers+nAddFeatures)
                 y_val = y_val.reshape(-1, nResponse_markers)
 

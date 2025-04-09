@@ -258,7 +258,6 @@ def get_settings_linear(a):
           "sherlock": False,
           "loss_f": "weighted_l2_loss",
           "curated_datasets": True,
-          "model_type": "linear_regression",
           "marker_weights": {"RToe_augmenter": 2,
                             "R5meta_augmenter": 2,
                             "RCalc_augmenter": 2,
@@ -299,7 +298,6 @@ def get_settings_linear(a):
           "h5": True,
           "sherlock": False,
           "curated_datasets": True,
-          "model_type": "linear_regression",
           "partial_selection": {"activity":["cycling"], "factor":[2]}
       }
   }

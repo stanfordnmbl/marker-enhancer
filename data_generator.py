@@ -7,7 +7,7 @@ from utilities import get_height, normalize_height, get_idx_in_all_features_oldD
 import h5py
 
 # Inspired from https://stanford.edu/~shervine/blog/keras-how-to-generate-data-on-the-fly
-class lstmDataGenerator(keras.utils.Sequence):
+class dataGenerator(keras.utils.Sequence):
     'Generates data for Keras'
     def __init__(self, list_IDs, pathData, batch_size=64, dim_f=(30,59), 
                  dim_r=(30,87), shuffle=True, noise_bool=False, noise_type='',
@@ -267,7 +267,7 @@ class lstmDataGenerator(keras.utils.Sequence):
 
         return X, y
     
-class transformerDataGenerator(keras.utils.Sequence):
+class dataGeneratorTransformer(keras.utils.Sequence):
     'Generates data for Keras'
     def __init__(self, list_IDs, pathData, batch_size=64, dim_f=(30,59), 
                  dim_r=(30,87), shuffle=True, noise_bool=False, noise_type='',
