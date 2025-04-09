@@ -14,3 +14,5 @@ Data/training_data_curated_60_openpose/*
 
 test_data/*
 !test_data/drop_vertical_jump.trc
+
+trained_models/
