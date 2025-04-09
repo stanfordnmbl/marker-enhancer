@@ -66,10 +66,45 @@ def get_settings_lstm(a):
           "sherlock": False,
           "curated_datasets": True,
           "partial_selection": {"activity":["cycling"], "factor":[2]}
-        }
+        },
+
+      "body_example": {
+          "augmenter_type": "lowerExtremity",
+          "poseDetector": "openpose",
+          "idxDatasets": [0],
+          "scaleFactors": [1.],
+          "nScaleFactors": -1,
+          "different_data_val_loss": True,
+          "learning_r": 0.0000551656748852718,
+          "nHUnits": 128,
+          "nHLayers": 3,
+          "nEpochs": 30,
+          "batchSize": 64,
+          "mean_subtraction": True,
+          "std_normalization": True,
+          "noise_magnitude": 0.018,
+          "noise_type": "per_timestep",
+          "withRotation": True,
+          "nRotations": 8,
+          "rotation_type": "mixedCircleSphereRotation",
+          "mixedCircleSphereRotations" : {"nCircleRotations": 6, "nSphereRotations": 2},
+          "bidirectional": False,
+          "num_frames": 60,
+          "sampling_frequencies": {"Dataset": [2], "fs": [100]},
+          "h5": True,
+          "sherlock": False,
+          "loss_f": "weighted_l2_loss",
+          "curated_datasets": True,
+          "marker_weights": {"RToe_augmenter": 2,
+                            "R5meta_augmenter": 2,
+                            "RCalc_augmenter": 2,
+                            "LToe_augmenter": 2,
+                            "L5meta_augmenter": 2,
+                            "LCalc_augmenter": 2}
+        },
   }
 
-  return settings[a]
+  return settings[str(a)]
 
 # Transformer.
 def get_settings_transformer(a):
