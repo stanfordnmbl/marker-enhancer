@@ -69,7 +69,7 @@ def get_settings_lstm(a):
         }
   }
 
-  return settings[str(a)]
+  return settings[a]
 
 # Transformer.
 def get_settings_transformer(a):
