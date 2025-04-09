@@ -204,7 +204,8 @@ for case in cases:
     resample = {"Dataset": [i for i in idxDatasets], "fs": [default_sf for i in range(0,len(idxDatasets))]}
     if 'sampling_frequencies' in settings:
         for i in settings['sampling_frequencies']['Dataset']:
-            resample["fs"][resample["Dataset"].index(i)] = settings['sampling_frequencies']["fs"][settings['sampling_frequencies']["Dataset"].index(i)]
+            if i in resample["Dataset"]:
+                resample["fs"][resample["Dataset"].index(i)] = settings['sampling_frequencies']["fs"][settings['sampling_frequencies']["Dataset"].index(i)]
 
     # I am having an issue with using a lot of validation data to compute the
     # val loss during training and therefore using early stopping. Let's add
