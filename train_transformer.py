@@ -1,6 +1,6 @@
 '''
     ---------------------------------------------------------------------------
-    train_lstm_linear.py
+    train_transformer.py
     ---------------------------------------------------------------------------
     Copyright 2022 Stanford University and the Authors
     
@@ -28,8 +28,7 @@ import h5py
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning)
 
-from settings import get_settings_lstm, get_settings_linear
-from models import get_lstm_model, get_linear_regression_model
+from settings import get_settings_transformer
 from data_generator import dataGenerator
 from datasets import getInfodataset
 from utilities import getPartition, get_partition_name, get_mean_name
@@ -38,24 +37,24 @@ from utilities import subtract_reference_marker_value, normalize_height
 from utilities import get_circle_rotation, get_noise, get_height, getInfoDataName, getResampleName
 from utilities import getMarkersPoseDetector_lowerExtremity, getMarkersAugmenter_lowerExtremity
 from utilities import getMarkersPoseDetector_upperExtremity, getMarkersAugmenter_upperExtremity
+from transformer_model import get_transformer_encoderonly_model
+from transformer_model import  Augmenter_EncoderOnly, ExportAugmenter_EncoderOnly
 
 # %% User inputs.
 # Select case you want to train, see mySettings for case-specific settings.
-model_type = 'linear' # Options are 'lstm' or 'linear'.
 cases = ["body_example", "arm_example"]
+model_type = 'transformer'
+earlyStopping = True
 
 runTraining = True
-runTrainingFromCheckpoint = False
 saveTrainedModel = True
+inferenceTesting = False
 
-for case in cases:
+for case in cases:   
 
     # %% Load settings.
-    print("Training case: model type {} - case {}".format(model_type, case))
-    if model_type == 'lstm':
-        settings = get_settings_lstm(case)
-    elif model_type == 'linear':
-        settings = get_settings_linear(case)
+    print("Training case: {}".format(case))
+    settings = get_settings_transformer(case)
     augmenter_type = settings["augmenter_type"]
     poseDetector = settings["poseDetector"]
     idxDatasets = settings["idxDatasets"]
@@ -65,30 +64,50 @@ for case in cases:
     mean_subtraction = settings["mean_subtraction"]
     std_normalization = settings["std_normalization"]
 
-    # Number units in hidden layers.
-    nHUnits = 0 # default
-    if "nHUnits" in settings:
-        nHUnits = settings["nHUnits"]
-
-    # Number hidden layers.
-    nHLayers = 0 # default
+    # Number of layers.
+    nHLayers = 6 # Default from ref paper
     if "nHLayers" in settings:
         nHLayers = settings["nHLayers"]
 
-    # Learning rate.
-    learning_r = 1e-3 # default
-    if "learning_r" in settings:
-        learning_r = settings["learning_r"] 
+    # Number of multi-head attention heads.
+    nHeads = 8 # Default from ref paper
+    if "nHeads" in settings:
+        nHeads = settings["nHeads"]
+
+    # Dimensionality of the embedding space.
+    d_model = 512 # Default from ref paper
+    if "d_model" in settings:
+        d_model = settings["d_model"]
+
+    # Dimensionality of the feed-forward network.
+    d_ff = 2048 # Default from ref paper
+    if "d_ff" in settings:
+        d_ff = settings["d_ff"]
 
     # Dropout.
-    dropout = 0.0 # default
+    dropout = 0.1 # Default from ref paper
     if "dropout" in settings:
         dropout = settings["dropout"]
 
-    # Recurrent dropout.
-    recurrent_dropout = 0.0 # default
-    if "recurrent_dropout" in settings:
-        recurrent_dropout = settings["recurrent_dropout"]
+    # WIP: attention_axes.
+    attention_axes = None
+    if "attention_axes" in settings:
+        attention_axes = settings["attention_axes"]
+        
+    # Auto-regressive decoder.
+    autoregressive = False
+    if "autoregressive" in settings:
+        autoregressive = settings["autoregressive"]
+
+    # Encoder only.
+    encoder_only = False
+    if "encoder_only" in settings:
+        encoder_only = settings["encoder_only"]
+        
+    # Learning rate.
+    learning_r = 'custom'
+    if "learning_r" in settings:
+        learning_r = settings["learning_r"]
         
     # Loss function.
     loss_f = "mean_squared_error" # default
@@ -124,13 +143,8 @@ for case in cases:
         nSphereRotations = mixedCircleSphereRotations['nSphereRotations']
         if nCircleRotations + nSphereRotations != nRotations:
             raise ValueError("nCircleRotations + nSphereRotations != nRotations")
-
-    # Bidirectional.
-    bidirectional = False
-    if 'bidirectional' in settings:
-        bidirectional = settings["bidirectional"]
         
-    # Allows to select only part of the data in datasets tagged with activity name.
+    # Allows to select only part of the data in datasets tagged with activity name
     partial_selection = {"activity":[], "factor":[], "excluded":[]}
     if 'partial_selection' in settings:
         partial_selection = settings["partial_selection"]
@@ -139,7 +153,7 @@ for case in cases:
 
     # Allows to select nScaleFactors out of all scaleFactors available. That way
     # can deal with smaller dataset and avoid redundancy. If -1, then uses all
-    # scaleFactors.
+    # scaleFactors
     nScaleFactors = -1
     if 'nScaleFactors' in settings:
         nScaleFactors = settings["nScaleFactors"]
@@ -162,7 +176,7 @@ for case in cases:
     if 'num_frames' in settings:
         num_frames = settings["num_frames"]    
         
-    h5 = False
+    h5 = True
     if 'h5' in settings:
         h5 = settings["h5"]
     if h5:
@@ -170,7 +184,7 @@ for case in cases:
     else:
         prefixH5 = ''
 
-    curated_datasets = False
+    curated_datasets = True
     if 'curated_datasets' in settings:
         curated_datasets = settings["curated_datasets"]
     if curated_datasets:
@@ -190,10 +204,9 @@ for case in cases:
     resample = {"Dataset": [i for i in idxDatasets], "fs": [default_sf for i in range(0,len(idxDatasets))]}
     if 'sampling_frequencies' in settings:
         for i in settings['sampling_frequencies']['Dataset']:
-            if i in resample["Dataset"]:
-                resample["fs"][resample["Dataset"].index(i)] = settings['sampling_frequencies']["fs"][settings['sampling_frequencies']["Dataset"].index(i)]
+            resample["fs"][resample["Dataset"].index(i)] = settings['sampling_frequencies']["fs"][settings['sampling_frequencies']["Dataset"].index(i)]
 
-    # I am having an issue (tf?) with using a lot of validation data to compute the
+    # I am having an issue with using a lot of validation data to compute the
     # val loss during training and therefore using early stopping. Let's add
     # the option to only use part of the validation data when evaluating the
     # val loss. For instance, no need to use all five scale factors and all
@@ -271,10 +284,10 @@ for case in cases:
 
     # %% Helper indices.
     # Get indices features/responses based on augmenter_type and poseDetector.    
-    if augmenter_type == 'lowerExtremity':        
+    if augmenter_type == 'lowerExtremity':
         feature_markers = getMarkersPoseDetector_lowerExtremity(poseDetector)[0]
-        response_markers = getMarkersAugmenter_lowerExtremity()[0]    
-    elif augmenter_type == 'upperExtremity':        
+        response_markers = getMarkersAugmenter_lowerExtremity()[0]
+    elif augmenter_type == 'upperExtremity':
         feature_markers = getMarkersPoseDetector_upperExtremity(poseDetector)[0]
         response_markers = getMarkersAugmenter_upperExtremity()[0]
     nFeature_markers = len(feature_markers)*nDim
@@ -304,15 +317,15 @@ for case in cases:
     scaleFactorName = scaleFactorName.replace('.', '')
     partitionNameAll = ('{}_{}_{}_{}'.format(augmenter_type, datasetName,
                                         scaleFactorName, nScaleFactors))
-
+    
     if different_data_val_loss:        
         scaleFactorName_val_loss = ' '.join([str(elem) for elem in scaleFactors_val_loss])
         scaleFactorName_val_loss = scaleFactorName_val_loss.replace(' ', '')
         scaleFactorName_val_loss = scaleFactorName_val_loss.replace('.', '')        
         partitionNameAll_val_loss = ('{}_{}_{}_{}'.format(
             augmenter_type, datasetName,
-            scaleFactorName_val_loss, nScaleFactors_val_loss))
-
+            scaleFactorName_val_loss, nScaleFactors_val_loss))    
+    
     if 'activity' in partial_selection:
         if partial_selection['activity']:
             for i, activity in enumerate(partial_selection['activity']):
@@ -322,8 +335,7 @@ for case in cases:
     if 'excluded' in partial_selection:
         if partial_selection['excluded']:
             partitionNameAll += '_full'
-            if different_data_val_loss:
-                partitionNameAll_val_loss += '_full'
+            partitionNameAll_val_loss += '_full'
             for i in partial_selection['excluded']:
                 partitionNameAll += str(i)
                 if different_data_val_loss: 
@@ -334,8 +346,9 @@ for case in cases:
     partitionName = get_partition_name(partitionNameAll)
     pathPartition = os.path.join(pathData_all, 'partition_{}.npy'.format(partitionName))
     if different_data_val_loss: 
+        # print(partitionNameAll_val_loss)
         partitionName_val_loss = get_partition_name(partitionNameAll_val_loss)
-        pathPartition_val_loss = os.path.join(pathData_all, 'partition_{}.npy'.format(partitionName_val_loss))   
+        pathPartition_val_loss = os.path.join(pathData_all, 'partition_{}.npy'.format(partitionName_val_loss))        
 
     # Load infoData dict.    
     infoDataNameAll = ''
@@ -380,7 +393,7 @@ for case in cases:
     else:
         print("Loading main partition")
         partition = np.load(pathPartition, allow_pickle=True).item()
-
+        
     if different_data_val_loss:
         if not os.path.exists(pathPartition_val_loss):
             print("Computing val loss partition")
@@ -405,36 +418,6 @@ for case in cases:
     print("# sequences test set {}".format(partition['test'].shape[0]))
     if different_data_val_loss:
         print("# sequences validation set val loss {}".format(partition_val_loss['val'].shape[0]))
-
-    # Some analytics.
-    getPartitionNumberOnly = False
-    if getPartitionNumberOnly:
-        all_sets = ['train', 'val', 'test']
-        for split_set in all_sets:
-            print("Analyzing {} set".format(split_set))
-            analytics = {}
-            for count, i in enumerate(partition[split_set]):
-                c_dataset = infoData['datasets'][i]
-                c_subject = infoData['subjects'][i]
-                if not 'dataset' + str(c_dataset) in analytics:
-                    analytics['dataset' + str(c_dataset)] = {}
-                    analytics['dataset' + str(c_dataset)]['counts'] = []
-                    analytics['dataset' + str(c_dataset)]['subjects'] = []
-                analytics['dataset' + str(c_dataset)]['counts'].append(i)
-                analytics['dataset' + str(c_dataset)]['subjects'].append(c_subject)
-                # if count > 1000:
-                #     break
-            total = 0
-            for c_dataset in analytics:
-                # Remove dubplicates from subjects.
-                analytics[c_dataset]['n_sequences'] = len(analytics[c_dataset]['counts'])
-                analytics[c_dataset]['subjects'] = list(set(analytics[c_dataset]['subjects']))
-                total += analytics[c_dataset]['n_sequences']
-                # Save results in spreadsheet.
-                with open('partition_analysis.csv', 'a') as f:
-                    f.write("{},{},{},{}\n".format(split_set, c_dataset, analytics[c_dataset]['n_sequences'], len(analytics[c_dataset]['subjects'])))
-            print("Total number of sequences in {} set: {}".format(split_set, total))        
-        continue
             
     # %% Data processing: compute mean and standard deviation per dataset and then average.
     meanNameAll = '{}_{}_{}_{}_{}_{}'.format(poseDetector, reference_marker, noise_type, noise_magnitude, rotation_type, nRotations)
@@ -487,6 +470,7 @@ for case in cases:
                             allow_pickle=True).item()
                         c_features_all = c_sequence["features"]                        
                     # Process features.
+                    # Does the current dataset have arms?
                     idx_in_mapping_arms = np.where(
                         np.array(mapping['datasets_arms_idx']) == idxDataset)[0][0]
                     withArms = mapping['datasets_arms_bool'][idx_in_mapping_arms]                        
@@ -604,6 +588,7 @@ for case in cases:
             'resample': resample
             }
     if different_data_val_loss:
+        # create dict params_val_loss from params and adjust some values
         params_val_loss = params.copy()
         params_val_loss['rotation_type'] = rotation_type_val_loss
         params_val_loss['nRotations'] = nRotations_val_loss
@@ -614,77 +599,55 @@ for case in cases:
     if different_data_val_loss:
         val_generator = dataGenerator(partition_val_loss['val'], pathData_all, **params_val_loss)
     else:            
-        val_generator = dataGenerator(partition['val'], pathData_all, **params)      
+        val_generator = dataGenerator(partition['val'], pathData_all, **params)   
 
     # %% Initialize model.
-    if model_type == 'lstm':  
-        model = get_lstm_model(input_dim=nFeature_markers+nAddFeatures, output_dim=nResponse_markers,
-                                nHiddenLayers=nHLayers, nHUnits=nHUnits, learning_r=learning_r, loss_f=loss_f,
-                                bidirectional=bidirectional,
-                                dropout=dropout, recurrent_dropout=recurrent_dropout, weights=weights_loss)
-    elif model_type == 'linear':
-        model = get_linear_regression_model(input_dim=nFeature_markers+nAddFeatures, output_dim=nResponse_markers,
-                                            learning_r=learning_r, loss_f=loss_f, weights=weights_loss)
+    model = get_transformer_encoderonly_model(input_dim=nFeature_markers+nAddFeatures, output_dim=nResponse_markers,
+        loss_f=loss_f, weights=weights_loss, dropout=dropout,
+        num_layers=nHLayers, num_heads=nHeads, d_model=d_model, d_ff=d_ff,
+        attention_axes=attention_axes, learning_r=learning_r)
+           
     # Calculate total number of parameters
-    # model.summary()
+    # model.build(input_shape=(None, num_frames,nFeature_markers+nAddFeatures))
+    # model.summary()    
     # total_params = sum([tf.reduce_prod(var.shape).numpy() for var in model.trainable_variables])
     # print(f"Total number of parameters: {total_params}")
 
     # %% Train model.
-    if runTraining:        
+    if runTraining:
         early_stopping_callback = tf.keras.callbacks.EarlyStopping(
-            monitor='val_loss', patience=3, verbose=1, mode="auto",
+            monitor='val_loss', patience=10, verbose=1, mode="auto",
             restore_best_weights=True)
         
-        checkpoint_filepath = os.path.join(pathTrainedModels, 'checkpoint.h5')
-        checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
-            filepath=checkpoint_filepath, save_weights_only=True,
-            save_best_only=True, monitor='loss', mode='min')
-
-        if runTrainingFromCheckpoint and os.path.exists(checkpoint_filepath):
-            model.load_weights(checkpoint_filepath)
-            print("Loaded checkpoint")
-
-        if different_data_val_loss:
-            # Having problems with tensorflow/cuda/smthg with training hanging
-            # after the first epoch. I believe this is somehow related to the
-            # validation data and the data generator. This is a hacky solution
-            # to load all the validation data in memory and pass it to the
-            # model.fit function.
-            # Initialize empty lists to collect validation data
-            X_val = []
-            y_val = []
-            # Iterate through the val_generator to collect data
-            for batch in val_generator:
-                X_batch, y_batch = batch
-                X_val.append(X_batch)
-                y_val.append(y_batch)
-            # Convert the collected data into NumPy arrays
-            X_val = np.concatenate(X_val)
-            y_val = np.concatenate(y_val)
-
-            if model_type == 'linear':
-                X_val = X_val.reshape(-1, nFeature_markers+nAddFeatures)
-                y_val = y_val.reshape(-1, nResponse_markers)
-
-            # Use X_val and y_val instead of val_generator 
-            history = model.fit(train_generator,  validation_data=(X_val, y_val),
-                                epochs=nEpochs, batch_size=batchSize, verbose=2,
-                                use_multiprocessing=use_multiprocessing, workers=nWorkers,
-                                callbacks=[early_stopping_callback, checkpoint_callback])
-        else:
-            history = model.fit(train_generator,  validation_data=val_generator,
-                                epochs=nEpochs, batch_size=batchSize, verbose=2,
-                                use_multiprocessing=use_multiprocessing, workers=nWorkers,
-                                callbacks=[early_stopping_callback, checkpoint_callback])
+        # Having problems with tensorflow/cuda/smthg with training hanging
+        # after the first epoch. I believe this is somehow related to the
+        # validation data and the data generator. This is a hacky solution
+        # to load all the validation data in memory and pass it to the
+        # model.fit function.
+        # Initialize empty lists to collect validation data
+        X_val = []
+        y_val = []
+        # Iterate through the val_generator to collect data
+        for batch in val_generator:
+            X_batch, y_batch = batch
+            X_val.append(X_batch)
+            y_val.append(y_batch)
+        # Convert the collected data into NumPy arrays
+        X_val = np.concatenate(X_val)
+        y_val = np.concatenate(y_val)
+        # Use X_val and y_val instead of val_generator    
+        history = model.fit(
+            train_generator,  validation_data=(X_val, y_val),
+            epochs=nEpochs, batch_size=batchSize, verbose=2,
+            use_multiprocessing=use_multiprocessing, workers=nWorkers,
+            callbacks=[early_stopping_callback])
         
     # %% Save results.
     if saveTrainedModel:
-        model_json = model.to_json()
-        with open(os.path.join(pathTrainedModels, "model.json"), "w") as json_file:
-            json_file.write(model_json)    
-        # Save weights.
-        model.save_weights(os.path.join(pathTrainedModels, 'weights.h5'))
+        # Save model
+        augmenter = Augmenter_EncoderOnly(model)
+        augmenter_instance = ExportAugmenter_EncoderOnly(augmenter)
+        tf.saved_model.save(augmenter_instance, export_dir=pathTrainedModels)        
         # Save history.
         with open(os.path.join(pathTrainedModels, "history"), 'wb') as file_pi:
             pickle.dump(history.history, file_pi)   
@@ -699,4 +662,43 @@ for case in cases:
         metadata = {}
         metadata['reference_marker'] = reference_marker
         with open(os.path.join(pathTrainedModels, "metadata.json"), 'w') as fp:
-            json.dump(metadata, fp)
+            json.dump(metadata, fp)   
+        
+    # %% Inference testing
+    if inferenceTesting:      
+        # Load an input sequence
+        c_pathDataset = os.path.join(pathData_all, '{}dataset{}_{}_{}{}{}{}'.format(prefixH5, idxDataset, num_frames, poseDetector, prefix_old_data, sensitivity_model, suffix_sf))
+        with h5py.File(os.path.join(c_pathDataset, 'time_sequences.h5'), 'r') as f:
+            grp = f['data']                            
+            test_inputs_all = grp['features'][0, :]            
+        idx_in_mapping_arms = np.where(
+            np.array(mapping['datasets_arms_idx']) == idxDataset)[0][0]
+        withArms = mapping['datasets_arms_bool'][idx_in_mapping_arms]
+        idx_in_all_features = get_idx_in_all_features(
+            augmenter_type, poseDetector, test_inputs_all.shape[1], nDim=nDim, 
+            withArms=withArms, featureHeight=featureHeight, featureWeight=featureWeight)[0]
+        test_inputs_2D = test_inputs_all[:,idx_in_all_features]
+        # Get dimension output
+        from utilities import get_idx_in_all_labels
+        idx_labels, nResponseMarkers = get_idx_in_all_labels(
+            augmenter_type, nDim=3, withArms=withArms)
+        label_dimension = len(idx_labels)
+
+        # Test running            
+        augmenter_encoder_only = Augmenter_EncoderOnly(model)
+        test_outputs = augmenter_encoder_only(test_inputs_2D)        
+        test_outputs_np = test_outputs.numpy()
+        
+        # Test export
+        augmenter_instance = ExportAugmenter_EncoderOnly(augmenter_encoder_only)        
+        test_outputs_instance = augmenter_instance(test_inputs_2D)
+        test_outputs_instance_np = test_outputs_instance.numpy()
+        assert np.array_equal(test_outputs_np, test_outputs_instance_np), 'before saving'
+        
+        # Test saving and reload
+        tf.saved_model.save(augmenter_instance, export_dir=pathTrainedModels)
+        augmenter_instance_reloaded = tf.saved_model.load(pathTrainedModels)        
+        test_outputs_reload = augmenter_instance_reloaded(test_inputs_2D)
+        test_outputs_reload_np = test_outputs_reload.numpy()
+        assert np.array_equal(test_outputs_np, test_outputs_reload_np), 'after loading'
+        

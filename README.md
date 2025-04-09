@@ -27,8 +27,8 @@ model is the default model used in OpenCap ([v0.3](https://github.com/stanfordnm
 We will make the public data available as soon as possible.
 In the meantime, here is an [example dataset](https://drive.google.com/drive/folders/1ZpExo7fpdyX6qKjGvO40d8hJdm8906ij?usp=sharing) (corresponding to `Dataset0`).
 Download it and set it under the `Data/training_data_curated_60_openpose` folder. You should have the following structure:
-- `Data/training_data_curated_60_openpose/infoData.npy`
-- `Data/training_data_curated_60_openpose/time_sequences.h5`
+- `Data/training_data_curated_60_openpose/h5_dataset0_60_openpose/infoData.npy`
+- `Data/training_data_curated_60_openpose/h5_dataset0_60_openpose/time_sequences.h5`
 
 ### Training
 The code we provide is for training the LSTM/Linear and Transformer models. 
