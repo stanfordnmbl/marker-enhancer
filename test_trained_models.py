@@ -16,7 +16,7 @@ enhancer_type = 'linear' # Options are 'lstm', 'linear', or 'transformer'.
 # specify the case you want to test in the variable 'case'.
 test_reference_model = False
 # Select case you want to test, see settings.
-case = 'example' # ignored if test_reference_model is True
+test_case = 'example' # ignored if test_reference_model is True
 
 # Options are 'drop_vertical_jump', 'sit_to_stand', 'squats'
 # The files are in the test_data folder.
@@ -33,7 +33,7 @@ path_trc_file_out = os.path.join(path_main, 'test_data', 'enhanced', enhancer_ty
 if test_reference_model:
     path_trc_file_out = os.path.join(path_trc_file_out, 'reference')
 else:
-    path_trc_file_out = os.path.join(path_trc_file_out, case)
+    path_trc_file_out = os.path.join(path_trc_file_out, test_case)
 os.makedirs(path_trc_file_out, exist_ok=True)
 
 # Reference marker position.
@@ -49,7 +49,7 @@ for model_type in ['body', 'arm']:
         case = model_type + '_reference'
         path_models = os.path.join(path_main, 'reference_models', enhancer_type, model_type)        
     else:
-        case = model_type + '_' + case
+        case = model_type + '_' + test_case
         path_models = os.path.join(path_main, 'trained_models', enhancer_type, case)
     if enhancer_type == 'lstm':
         settings = get_settings_lstm(case)
