@@ -3,10 +3,13 @@ __pycache__/
 *.log
 *.vscode/
 
-# Data
-Data/*
+# Keep specific files in Data
 !Data/subjectSplit_curated.npy
 !Data/training_data_curated_60_openpose/
+!Data/training_data_curated_60_openpose/infoData_60_openpose.npy
+
+# Ignore everything in the 'training_data_curated_60_openpose' folder except the desired file
+Data/training_data_curated_60_openpose/*
 !Data/training_data_curated_60_openpose/infoData_60_openpose.npy
 
 test_data/*
