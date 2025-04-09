@@ -18,23 +18,22 @@ from utilities import getPartition, get_partition_name, get_mean_name
 from utilities import rotateArray, rotateArraySphere4, get_idx_in_all_features, get_reference_marker_value
 from utilities import subtract_reference_marker_value, normalize_height
 from utilities import get_circle_rotation, get_noise, get_height, getInfoDataName, getResampleName
+from utilities import getMarkersPoseDetector_lowerExtremity, getMarkersAugmenter_lowerExtremity
+from utilities import getMarkersPoseDetector_upperExtremity, getMarkersAugmenter_upperExtremity
 
 # %% User inputs.
 # Select case you want to train, see mySettings for case-specific settings.
 model_type = 'linear' # Options are 'lstm' or 'linear'.
 cases = ["body_example", "arm_example"]
-docker = False
+
+runTraining = True
+runTrainingFromCheckpoint = False
+saveTrainedModel = True
 
 for case in cases:
- 
-    getPartitionNumberOnly = False
-    runTraining = True
-    runFromCheckpoint = False
-    saveTrainedModel = True
 
     # %% Load settings.
-
-    print("Training case: {}".format(case))
+    print("Training case: model type {} - case {}".format(model_type, case))
     if model_type == 'lstm':
         settings = get_settings_lstm(case)
     elif model_type == 'linear':
@@ -213,15 +212,7 @@ for case in cases:
                 raise ValueError("nCircleRotations_val_loss + nSphereRotations_val_loss != nRotations_val_loss")
 
     # %% Paths.
-    if platform.system() == 'Linux':
-        # To use docker.
-        if docker:
-            pathMain = '/marker-enhancer'
-        else:
-            pathMain = os.getcwd()
-    else:
-        pathMain = os.getcwd()
-
+    pathMain = os.getcwd()
     pathTrainedModels = os.path.join(pathMain, 'trained_models', model_type, case)
     os.makedirs(pathTrainedModels, exist_ok=True)
         
@@ -258,41 +249,16 @@ for case in cases:
                 idxDatasets_noArms.append(idxDataset)
         # Remove datasets in idxDatasets_noArms from idxDatasets
         idxDatasets = [i for i in idxDatasets if i not in idxDatasets_noArms]
-
     print('Number of datasets: {}'.format(len(idxDatasets)))
 
     # %% Helper indices.
     # Get indices features/responses based on augmenter_type and poseDetector.    
-    if augmenter_type == 'lowerExtremity':
-        from utilities import getMarkersPoseDetector_lowerExtremity
-        from utilities import getMarkersAugmenter_lowerExtremity
+    if augmenter_type == 'lowerExtremity':        
         feature_markers = getMarkersPoseDetector_lowerExtremity(poseDetector)[0]
-        response_markers = getMarkersAugmenter_lowerExtremity()[0]
-    elif augmenter_type == 'lowerExtremityNoTracking':
-        from utilities import getMarkersPoseDetector_lowerExtremity
-        from utilities import getMarkersAugmenter_lowerExtremityNoTracking
-        feature_markers = getMarkersPoseDetector_lowerExtremity(poseDetector)[0]
-        response_markers = getMarkersAugmenter_lowerExtremityNoTracking()[0]
-    elif augmenter_type == 'lowerExtremityNoFeet':
-        from utilities import getMarkersPoseDetector_lowerExtremity
-        from utilities import getMarkersAugmenter_lowerExtremityNoFeet
-        feature_markers = getMarkersPoseDetector_lowerExtremity(poseDetector)[0]
-        response_markers = getMarkersAugmenter_lowerExtremityNoFeet()[0]
-    elif augmenter_type == 'lowerExtremityNoTrackingNoFeet':
-        from utilities import getMarkersPoseDetector_lowerExtremity
-        from utilities import getMarkersAugmenter_lowerExtremityNoTrackingNoFeet
-        feature_markers = getMarkersPoseDetector_lowerExtremity(poseDetector)[0]
-        response_markers = getMarkersAugmenter_lowerExtremityNoTrackingNoFeet()[0]
-    elif augmenter_type == 'upperExtremity':
-        from utilities import getMarkersPoseDetector_upperExtremity
-        from utilities import getMarkersAugmenter_upperExtremity
+        response_markers = getMarkersAugmenter_lowerExtremity()[0]    
+    elif augmenter_type == 'upperExtremity':        
         feature_markers = getMarkersPoseDetector_upperExtremity(poseDetector)[0]
         response_markers = getMarkersAugmenter_upperExtremity()[0]
-    elif augmenter_type == 'feet':
-        from utilities import getMarkersPoseDetector_feet
-        from utilities import getMarkersAugmenter_feet
-        feature_markers = getMarkersPoseDetector_feet(poseDetector)[0]
-        response_markers = getMarkersAugmenter_feet()[0]
     nFeature_markers = len(feature_markers)*nDim
     nResponse_markers = len(response_markers)*nDim
     # Additional features (height and weight).
@@ -422,9 +388,9 @@ for case in cases:
     if different_data_val_loss:
         print("# sequences validation set val loss {}".format(partition_val_loss['val'].shape[0]))
 
+    # Some analytics.
+    getPartitionNumberOnly = False
     if getPartitionNumberOnly:
-        
-        # More analytics
         all_sets = ['train', 'val', 'test']
         for split_set in all_sets:
             print("Analyzing {} set".format(split_set))
@@ -442,16 +408,14 @@ for case in cases:
                 #     break
             total = 0
             for c_dataset in analytics:
-                # Remove dubplicates from subjects
+                # Remove dubplicates from subjects.
                 analytics[c_dataset]['n_sequences'] = len(analytics[c_dataset]['counts'])
                 analytics[c_dataset]['subjects'] = list(set(analytics[c_dataset]['subjects']))
                 total += analytics[c_dataset]['n_sequences']
-                # print("Dataset {} has {} sequences from {} subjects".format(c_dataset, analytics[c_dataset]['n_sequences'], len(analytics[c_dataset]['subjects'])))
-                # Save results in spreadsheet
+                # Save results in spreadsheet.
                 with open('partition_analysis.csv', 'a') as f:
                     f.write("{},{},{},{}\n".format(split_set, c_dataset, analytics[c_dataset]['n_sequences'], len(analytics[c_dataset]['subjects'])))
-            print("Total number of sequences in {} set: {}".format(split_set, total))
-        
+            print("Total number of sequences in {} set: {}".format(split_set, total))        
         continue
             
     # %% Data processing: compute mean and standard deviation per dataset and then average.
@@ -505,7 +469,6 @@ for case in cases:
                             allow_pickle=True).item()
                         c_features_all = c_sequence["features"]                        
                     # Process features.
-                    # Does the current dataset have arms?
                     idx_in_mapping_arms = np.where(
                         np.array(mapping['datasets_arms_idx']) == idxDataset)[0][0]
                     withArms = mapping['datasets_arms_bool'][idx_in_mapping_arms]                        
@@ -623,7 +586,6 @@ for case in cases:
             'resample': resample
             }
     if different_data_val_loss:
-        # create dict params_val_loss from params and adjust some values
         params_val_loss = params.copy()
         params_val_loss['rotation_type'] = rotation_type_val_loss
         params_val_loss['nRotations'] = nRotations_val_loss
@@ -655,15 +617,13 @@ for case in cases:
         early_stopping_callback = tf.keras.callbacks.EarlyStopping(
             monitor='val_loss', patience=3, verbose=1, mode="auto",
             restore_best_weights=True)
-
-        # This recently caused problems about reading/writing to the .h5 with the weight
-        # Not passed to model.fit.
+        
         checkpoint_filepath = os.path.join(pathTrainedModels, 'checkpoint.h5')
         checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
             filepath=checkpoint_filepath, save_weights_only=True,
             save_best_only=True, monitor='loss', mode='min')
 
-        if runFromCheckpoint and os.path.exists(checkpoint_filepath):
+        if runTrainingFromCheckpoint and os.path.exists(checkpoint_filepath):
             model.load_weights(checkpoint_filepath)
             print("Loaded checkpoint")
 
@@ -690,47 +650,17 @@ for case in cases:
                 y_val = y_val.reshape(-1, nResponse_markers)
 
             # Use X_val and y_val instead of val_generator 
-            print('Use X_val and y_val instead of val_generator') 
             history = model.fit(train_generator,  validation_data=(X_val, y_val),
                                 epochs=nEpochs, batch_size=batchSize, verbose=2,
                                 use_multiprocessing=use_multiprocessing, workers=nWorkers,
                                 callbacks=[early_stopping_callback, checkpoint_callback])
-            # history = model.fit(train_generator,  validation_data=(X_val, y_val),
-            #                     epochs=nEpochs, batch_size=batchSize, verbose=2,
-            #                     use_multiprocessing=use_multiprocessing, workers=nWorkers)
         else:
             history = model.fit(train_generator,  validation_data=val_generator,
                                 epochs=nEpochs, batch_size=batchSize, verbose=2,
                                 use_multiprocessing=use_multiprocessing, workers=nWorkers,
                                 callbacks=[early_stopping_callback, checkpoint_callback])
         
-        test=1
-
-        # def train_model():
-
-        #     history = model.fit(train_generator, validation_data=val_generator, 
-        #                         epochs=nEpochs, batch_size=batchSize, verbose=2,
-        #                         use_multiprocessing=use_multiprocessing, workers=nWorkers,
-        #                         callbacks=[callback, checkpoint_callback])
-        #     return history    
-
-        # # Profile the code
-        # pr = cProfile.Profile()
-        # pr.enable()
-
-        # Train the model
-        # history = train_model()
-
-        # # Disable profiling and print the results
-        # pr.disable()
-
-        # # Create a pstats.Stats object from the profiling data
-        # stats = pstats.Stats(pr)
-
-        # # Generate a sorted list of the 10 most time-consuming functions
-        # stats.sort_stats('tottime').print_stats(10)
-
-    # %% Save model and other.
+    # %% Save results.
     if saveTrainedModel:
         model_json = model.to_json()
         with open(os.path.join(pathTrainedModels, "model.json"), "w") as json_file:

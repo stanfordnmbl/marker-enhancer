@@ -1,5 +1,4 @@
 numpy
-tensorflow[and-cuda]
 matplotlib
 scipy
 pandas

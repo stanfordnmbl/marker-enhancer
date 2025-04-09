@@ -14,10 +14,9 @@ from utilities import getMarkersPoseDetector_upperExtremity, getMarkersAugmenter
 enhancer_type = 'transformer' # Options are 'lstm', 'linear', or 'transformer'.
 # Set to True if you want to test the reference model. If set to False, then
 # specify the case you want to test in the variable 'case'.
-test_reference_model = True
+test_reference_model = False
 # Select case you want to test, see settings.
-# TODO
-case = '' # ignored if test_reference_model is True
+case = 'example' # ignored if test_reference_model is True
 
 # Options are 'drop_vertical_jump', 'sit_to_stand', 'squats'
 # The files are in the test_data folder.
@@ -32,7 +31,7 @@ path_main = os.getcwd()
 path_trc_file = os.path.join(path_main, 'test_data', test_marker_filename + '.trc')
 path_trc_file_out = os.path.join(path_main, 'test_data', 'enhanced', enhancer_type)
 if test_reference_model:
-    path_trc_file_out = os.path.join(path_trc_file_out, 'reference_model')
+    path_trc_file_out = os.path.join(path_trc_file_out, 'reference')
 else:
     path_trc_file_out = os.path.join(path_trc_file_out, case)
 os.makedirs(path_trc_file_out, exist_ok=True)
