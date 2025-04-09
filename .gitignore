@@ -6,6 +6,8 @@ __pycache__/
 # Data
 Data/*
 !Data/subjectSplit_curated.npy
+!Data/training_data_curated_60_openpose/
+!Data/training_data_curated_60_openpose/infoData_60_openpose.npy
 
 test_data/*
 !test_data/drop_vertical_jump.trc

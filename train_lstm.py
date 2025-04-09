@@ -16,12 +16,12 @@ from data_generator import lstmDataGenerator
 from datasets import getInfodataset
 from utilities import getPartition, get_partition_name, get_mean_name
 from utilities import rotateArray, rotateArraySphere4, get_idx_in_all_features, get_idx_in_all_features_oldData, get_reference_marker_value
-from utilities import subtract_reference_marker_value, normalize_height, getOpenPoseMarkers_lowerExtremity_oldData
+from utilities import subtract_reference_marker_value, normalize_height
 from utilities import get_circle_rotation, get_noise, get_height, getInfoDataName, getResampleName
 
 # %% User inputs.
 # Select case you want to train, see mySettings for case-specific settings.
-cases = ["lower_extremity"]
+cases = ["body_example"]
 docker = False
 
 for case in cases:
@@ -223,9 +223,8 @@ for case in cases:
     else:
         pathMain = os.getcwd()
 
-    pathTrainedModels = os.path.join(pathMain, "trained_lstm_models")
+    pathTrainedModels = os.path.join(pathMain, 'trained_models', 'lstm', case)
     os.makedirs(pathTrainedModels, exist_ok=True)
-    pathCModel = os.path.join(pathTrainedModels, "")
         
     # %% Settings.
     featureHeight = True
@@ -668,7 +667,7 @@ for case in cases:
 
         # This recently caused problems about reading/writing to the .h5 with the weight
         # Not passed to model.fit.
-        checkpoint_filepath = os.path.join(pathCModel + str(case) + "_checkpoint.weights.h5")
+        checkpoint_filepath = os.path.join(pathTrainedModels, 'checkpoint.h5')
         checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
             filepath=checkpoint_filepath, save_weights_only=True,
             save_best_only=True, monitor='loss', mode='min')
@@ -743,26 +742,22 @@ for case in cases:
     # %% Save model and other.
     if saveTrainedModel:
         model_json = model.to_json()
-        with open(pathCModel + str(case) + "_model.json", "w") as json_file:
+        with open(os.path.join(pathTrainedModels, "model.json"), "w") as json_file:
             json_file.write(model_json)    
         # Save weights.
-        model.save_weights(pathCModel + str(case) + "_weights.h5")
+        model.save_weights(os.path.join(pathTrainedModels, 'weights.h5'))
         # Save history.
-        with open(pathCModel + str(case) + "_history", 'wb') as file_pi:
+        with open(os.path.join(pathTrainedModels, "history"), 'wb') as file_pi:
             pickle.dump(history.history, file_pi)   
         # Save mean and std used for data processing.
         if mean_subtraction:
-            np.save(os.path.join(pathTrainedModels, 
-                                "{}_trainFeatures_mean.npy".format(case)), features_mean_all)
+            np.save(os.path.join(pathTrainedModels, "mean.npy"), features_mean_all)
         if std_normalization:
-            np.save(os.path.join(pathTrainedModels, 
-                                "{}_trainFeatures_std.npy".format(case)), features_std_all)
+            np.save(os.path.join(pathTrainedModels, "std.npy"), features_std_all)
         # Save partition to facilitate evaluation.
-        np.save(os.path.join(pathTrainedModels, 
-                            "{}_partition.npy".format(case)), partition)
+        np.save(os.path.join(pathTrainedModels, "partition.npy"), partition)
         # Add reference marker to dictionary metatdata and save as json file.
         metadata = {}
         metadata['reference_marker'] = reference_marker
-        with open(os.path.join(pathTrainedModels, 
-                                "{}_metadata.json".format(case)), 'w') as fp:
+        with open(os.path.join(pathTrainedModels, "metadata.json"), 'w') as fp:
             json.dump(metadata, fp)
