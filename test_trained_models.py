@@ -50,7 +50,7 @@ for model_type in ['body', 'arm']:
         path_models = os.path.join(path_main, 'reference_models', enhancer_type, model_type)        
     else:
         case = model_type + '_' + case
-        path_models = os.path.join(path_main, 'trained_models', enhancer_type, model_type, case)
+        path_models = os.path.join(path_main, 'trained_models', enhancer_type, case)
     if enhancer_type == 'lstm':
         settings = get_settings_lstm(case)
     elif enhancer_type == 'linear':

@@ -18,18 +18,18 @@ The code is organized into different sections for data preparation, training, an
 3. Install [TensorFlow with GPU support](https://www.tensorflow.org/install/pip).
 3. Install other packages: `python -m pip install -r requirements.txt`
 
-# Data
+### Data
 
-# Reference models
+### Reference models
 1. LSTM: 
 2. Transformer: 
 3. Linear: 
 
-# Training
+### Training
 1. LSTM: `train_lstm.py`
 2. Transformer: `train_transformer.py`
 
-# Testing
+### Testing
 1. LSTM: `test_lstm.py`
 2. Transformer: `test_transformer.py`
 
