@@ -1483,7 +1483,7 @@ def get_partition_name(partitionNameAll):
         random.seed(111)
     elif partitionNameAll == 'lowerExtremity_0_10_-1':
         random.seed(112)
-    elif partitionNameAll == 'lowerExtremity_0_090951010511_-1':
+    elif partitionNameAll == 'upperExtremity_0_090951010511_-1':
         random.seed(113)
     elif partitionNameAll == 'lowerExtremity_0125789101113141516171819202122232425262728_10_-1_treadmillwalking2_cycling3_karate2_full2':
         random.seed(114)
