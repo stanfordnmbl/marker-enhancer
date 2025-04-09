@@ -1502,14 +1502,12 @@ def get_partition_name(partitionNameAll):
     # Test
     elif partitionNameAll == 'lowerExtremity_4_09_-1':
         random.seed(1000)
+
+    # Demo
     elif partitionNameAll == 'lowerExtremity_0_10_-1':
         random.seed(10000)
-    
-    # Demo
-    elif partitionNameAll == 'lowerExtremity_0_1_-1':
-        random.seed(1000001)
-    elif partitionNameAll == 'upperExtremity_0_1_-1':
-        random.seed(1000002)
+    elif partitionNameAll == 'upperExtremity_0_10_-1':
+        random.seed(10001)
 
     else:
         raise ValueError("TODO: add name partition: {}".format(partitionNameAll))
