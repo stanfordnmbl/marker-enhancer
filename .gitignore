@@ -12,7 +12,9 @@ __pycache__/
 Data/training_data_curated_60_openpose/*
 !Data/training_data_curated_60_openpose/infoData_60_openpose.npy
 
-#test_data/*
-#!test_data/drop_vertical_jump.trc
+# test_data/*
+# !test_data/drop_vertical_jump.trc
+# !test_data/sit_to_stand.trc
+# !test_data/squats.trc
 
 trained_models/

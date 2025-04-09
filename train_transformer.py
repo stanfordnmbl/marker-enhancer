@@ -44,7 +44,6 @@ from transformer_model import  Augmenter_EncoderOnly, ExportAugmenter_EncoderOnl
 # Select case you want to train, see mySettings for case-specific settings.
 cases = ["body_example", "arm_example"]
 model_type = 'transformer'
-earlyStopping = True
 
 runTraining = True
 saveTrainedModel = True

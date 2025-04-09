@@ -4,8 +4,6 @@
 import tensorflow as tf
 import numpy as np
 
-from tensorflow.keras.metrics import MeanSquaredError, RootMeanSquaredError
-
 # %% Positional Encoding
 def positional_encoding(length, depth):
   depth = depth/2
@@ -147,7 +145,6 @@ class EncoderLayer(tf.keras.layers.Layer):
     x = self.self_attention(x)
     x = self.ffn(x)
     return x
-
 
 class Encoder(tf.keras.layers.Layer):
   def __init__(self, *, num_layers, d_model, num_heads,
