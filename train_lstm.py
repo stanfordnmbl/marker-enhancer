@@ -21,7 +21,7 @@ from utilities import get_circle_rotation, get_noise, get_height, getInfoDataNam
 
 # %% User inputs.
 # Select case you want to train, see mySettings for case-specific settings.
-cases = ["body_example"]
+cases = ["body_example", "arm_example"]
 docker = False
 
 for case in cases:

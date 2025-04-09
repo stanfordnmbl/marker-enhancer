@@ -78,7 +78,7 @@ def get_settings_lstm(a):
           "learning_r": 0.0000551656748852718,
           "nHUnits": 128,
           "nHLayers": 3,
-          "nEpochs": 30,
+          "nEpochs": 50,
           "batchSize": 64,
           "mean_subtraction": True,
           "std_normalization": True,
@@ -101,6 +101,33 @@ def get_settings_lstm(a):
                             "LToe_augmenter": 2,
                             "L5meta_augmenter": 2,
                             "LCalc_augmenter": 2}
+        },
+
+      "arm_example": {
+          "augmenter_type": "upperExtremity",
+          "poseDetector": "openpose",
+          "idxDatasets": [0],
+          "scaleFactors": [1.],
+          "nScaleFactors": -1,
+          "different_data_val_loss": True,
+          "learning_r": 0.0000551656748852718,
+          "nHUnits": 128,
+          "nHLayers": 4,
+          "nEpochs": 50,
+          "batchSize": 64,
+          "mean_subtraction": True,
+          "std_normalization": True,
+          "noise_magnitude": 0.018,
+          "noise_type": "per_timestep",
+          "withRotation": True,
+          "nRotations": 8,
+          "rotation_type": "mixedCircleSphereRotation",
+          "mixedCircleSphereRotations" : {"nCircleRotations": 6, "nSphereRotations": 2},
+          "bidirectional": False,
+          "num_frames": 60,
+          "h5": True,
+          "sherlock": False,
+          "curated_datasets": True
         },
   }
 
