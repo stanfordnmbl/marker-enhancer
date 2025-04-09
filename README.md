@@ -4,7 +4,7 @@ This repository contains code and trained models used for the paper ["Marker Dat
 The marker enhancer model predicts the 3D position of 43 anatomical markers (colored dots on right skeletons) from 20 video keypoint (colored triangles on left skeleton) positions. It consists of two models: the arm model predicts the 3D position of eight arm-located anatomical markers from seven arm and shoulder keypoint positions (blue) and the body model predicts the 3D position of 35 anatomical markers located on the shoulder, torso, and lower-body from 15 shoulder and lower-body keypoint positions (orange).
 
 <p align="center">
-  <img src="Images/Marker_enhancer_.png" width="800">
+  <img src="Images/MarkerEnhancer.png" width="800">
 </p>
 
 The marker enhancer is deployed as part of [OpenCap](https://www.opencap.ai/) ([source code](https://github.com/stanfordnmbl/opencap-core); [paper](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1011462)), a markerless motion capture system to measure human movement from smartphone videos.

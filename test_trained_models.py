@@ -11,7 +11,7 @@ from utilities import getMarkersPoseDetector_lowerExtremity, getMarkersAugmenter
 from utilities import getMarkersPoseDetector_upperExtremity, getMarkersAugmenter_upperExtremity
 
 # %% User settings.
-enhancer_type = 'transformer' # Options are 'lstm', 'linear', or 'transformer'.
+enhancer_type = 'linear' # Options are 'lstm', 'linear', or 'transformer'.
 # Set to True if you want to test the reference model. If set to False, then
 # specify the case you want to test in the variable 'case'.
 test_reference_model = False
