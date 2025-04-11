@@ -25,19 +25,19 @@ model is the default model used in OpenCap ([v0.3](https://github.com/stanfordnm
 
 ### Data
 The training data is split into separate datasets. Links to the public datasets are below.
-- [Dataset0](https://drive.google.com/drive/folders/1ZpExo7fpdyX6qKjGvO40d8hJdm8906ij?usp=sharing) (corresponding to `Dataset0`, corresponding publication [here](https://pubmed.ncbi.nlm.nih.gov/27875132/))
-- [Dataset1](https://drive.google.com/drive/folders/1_KLNAM5kO_UQXPBTRtHuvlH-eSyHXcHX?usp=sharing) (corresponding to `Dataset1`, corresponding publication [here](https://pubmed.ncbi.nlm.nih.gov/35798755/))
-- [Dataset5](https://drive.google.com/drive/folders/1aQDwNCjPvcbaH9QWr-WkSotsYuBOww7T?usp=sharing) (corresponding to `Dataset5`, corresponding publication [here](https://royalsocietypublishing.org/doi/10.1098/rsif.2020.0487))
-- [Dataset7](https://drive.google.com/drive/folders/1bNwpUqk_Igyc2l_iJwANraZeHS2ALnvT?usp=sharing) (corresponding to `Dataset7`, corresponding publication[here](https://pubmed.ncbi.nlm.nih.gov/31704899/))
-- [Dataset8](https://drive.google.com/drive/folders/1bbse_zO24c-BOwZ9K9DoWlRVU8JXER57?usp=sharing) (corresponding to `Dataset8`, corresponding publication [here](https://pubmed.ncbi.nlm.nih.gov/33935233/))
-- [Dataset9](https://drive.google.com/drive/folders/1ceqw0UWUrsLlQRT_HJHgJ0ANoicLwY_S?usp=sharing) (corresponding to `Dataset9`, corresponding publication [here](https://pubmed.ncbi.nlm.nih.gov/27793803/) and [here](https://pubmed.ncbi.nlm.nih.gov/29281799/))
-- [Dataset10](https://drive.google.com/drive/folders/1dB1r5iqYTn7j7KGF-8w-KGjjokXgSUCQ?usp=sharing) (corresponding to `Dataset10`, corresponding dataset [here](http://mocap.cs.cmu.edu/))
-- [Dataset11](https://drive.google.com/drive/folders/1dqIIZ_IkfJy-zBFdbXSTdljde6DU1szP?usp=sharing) (corresponding to `Dataset11`, corresponding publication [here](https://pubmed.ncbi.nlm.nih.gov/32948450/) and [here](https://pubmed.ncbi.nlm.nih.gov/33691592/))
-- [Dataset23](https://drive.google.com/drive/folders/1kx_Nmtkb6L_ZXTYpKetD9hLgqgr0NgqA?usp=sharing) (corresponding to `Dataset23`, corresponding publication [here](https://pubmed.ncbi.nlm.nih.gov/35307884/))
-- [Dataset24](https://drive.google.com/drive/folders/1ls5YUIZV9U5wlwMFku8EsHP4z-A2YBrY?usp=sharing) (corresponding to `Dataset24`, corresponding publication [here](https://pubmed.ncbi.nlm.nih.gov/31270327/))
-- [Dataset25](https://drive.google.com/drive/folders/1mgfP8wdUJj9Z2Tjs2xd9UMCnhGi7fSm5?usp=sharing) (corresponding to `Dataset25`, corresponding publication [here](https://pmc.ncbi.nlm.nih.gov/articles/PMC6750598/))
-- [Dataset26](https://drive.google.com/drive/folders/1naw5T5c-d4sG3wOLdBf_XTfqHR86Un4H?usp=sharing) (corresponding to `Dataset26`, corresponding publication [here](https://www.nature.com/articles/s41597-019-0323-z))
-- [Dataset27](https://drive.google.com/drive/folders/1ob3MlNw9NjFxICHKk2lgCQw-s_RI-w6C?usp=sharing) (corresponding to `Dataset27`, corresponding publication [here](https://www.nature.com/articles/s41597-021-00801-5))
+- [Dataset0](https://drive.google.com/drive/folders/1ZpExo7fpdyX6qKjGvO40d8hJdm8906ij?usp=sharing) (corresponding to `Dataset0` in `datasets.py`, corresponding publication [here](https://pubmed.ncbi.nlm.nih.gov/27875132/))
+- [Dataset1](https://drive.google.com/drive/folders/1_KLNAM5kO_UQXPBTRtHuvlH-eSyHXcHX?usp=sharing) (corresponding to `Dataset1` in `datasets.py`, corresponding publication [here](https://pubmed.ncbi.nlm.nih.gov/35798755/))
+- [Dataset5](https://drive.google.com/drive/folders/1aQDwNCjPvcbaH9QWr-WkSotsYuBOww7T?usp=sharing) (corresponding to `Dataset5` in `datasets.py`, corresponding publication [here](https://royalsocietypublishing.org/doi/10.1098/rsif.2020.0487))
+- [Dataset7](https://drive.google.com/drive/folders/1bNwpUqk_Igyc2l_iJwANraZeHS2ALnvT?usp=sharing) (corresponding to `Dataset7` in `datasets.py`, corresponding publication[here](https://pubmed.ncbi.nlm.nih.gov/31704899/))
+- [Dataset8](https://drive.google.com/drive/folders/1bbse_zO24c-BOwZ9K9DoWlRVU8JXER57?usp=sharing) (corresponding to `Dataset8` in `datasets.py`, corresponding publication [here](https://pubmed.ncbi.nlm.nih.gov/33935233/))
+- [Dataset9](https://drive.google.com/drive/folders/1ceqw0UWUrsLlQRT_HJHgJ0ANoicLwY_S?usp=sharing) (corresponding to `Dataset9` in `datasets.py`, corresponding publications [here](https://pubmed.ncbi.nlm.nih.gov/27793803/) and [here](https://pubmed.ncbi.nlm.nih.gov/29281799/))
+- [Dataset10](https://drive.google.com/drive/folders/1dB1r5iqYTn7j7KGF-8w-KGjjokXgSUCQ?usp=sharing) (corresponding to `Dataset10` in `datasets.py`, corresponding dataset [here](http://mocap.cs.cmu.edu/))
+- [Dataset11](https://drive.google.com/drive/folders/1dqIIZ_IkfJy-zBFdbXSTdljde6DU1szP?usp=sharing) (corresponding to `Dataset11` in `datasets.py`, corresponding publications [here](https://pubmed.ncbi.nlm.nih.gov/32948450/) and [here](https://pubmed.ncbi.nlm.nih.gov/33691592/))
+- [Dataset23](https://drive.google.com/drive/folders/1kx_Nmtkb6L_ZXTYpKetD9hLgqgr0NgqA?usp=sharing) (corresponding to `Dataset23` in `datasets.py`, corresponding publication [here](https://pubmed.ncbi.nlm.nih.gov/35307884/))
+- [Dataset24](https://drive.google.com/drive/folders/1ls5YUIZV9U5wlwMFku8EsHP4z-A2YBrY?usp=sharing) (corresponding to `Dataset24` in `datasets.py`, corresponding publication [here](https://pubmed.ncbi.nlm.nih.gov/31270327/))
+- [Dataset25](https://drive.google.com/drive/folders/1mgfP8wdUJj9Z2Tjs2xd9UMCnhGi7fSm5?usp=sharing) (corresponding to `Dataset25` in `datasets.py`, corresponding publication [here](https://pmc.ncbi.nlm.nih.gov/articles/PMC6750598/))
+- [Dataset26](https://drive.google.com/drive/folders/1naw5T5c-d4sG3wOLdBf_XTfqHR86Un4H?usp=sharing) (corresponding to `Dataset26` in `datasets.py`, corresponding publication [here](https://www.nature.com/articles/s41597-019-0323-z))
+- [Dataset27](https://drive.google.com/drive/folders/1ob3MlNw9NjFxICHKk2lgCQw-s_RI-w6C?usp=sharing) (corresponding to `Dataset27` in `datasets.py`, corresponding publication [here](https://www.nature.com/articles/s41597-021-00801-5))
 
 To use the datasets for training, download them and set them under the `Data/training_data_curated_60_openpose` folder.
 You should have the following structure, for example:
